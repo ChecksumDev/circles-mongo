@@ -45,17 +45,15 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 try:
     from objects import glob
 except ModuleNotFoundError as exc:
-    if exc.name == 'config':
-
-        # config file doesn't exist; create it from the default.
-        import shutil
-        shutil.copy('ext/config.sample.py', 'config.py')
-        log('A config file has been generated, '
-            'please configure it to your needs.', Ansi.LRED)
-        raise SystemExit(1)
-    else:
+    if exc.name != 'config':
         raise
 
+    # config file doesn't exist; create it from the default.
+    import shutil
+    shutil.copy('ext/config.sample.py', 'config.py')
+    log('A config file has been generated, '
+        'please configure it to your needs.', Ansi.LRED)
+    raise SystemExit(1)
 utils.misc.install_excepthook()
 
 # current version of circles
