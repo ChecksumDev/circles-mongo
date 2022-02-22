@@ -298,11 +298,7 @@ class Score:
                     s.status = SubmissionStatus.FAILED
         else:
             s.pp = s.sr = 0.0
-            if s.passed:
-                s.status = SubmissionStatus.SUBMITTED
-            else:
-                s.status = SubmissionStatus.FAILED
-
+            s.status = SubmissionStatus.SUBMITTED if s.passed else SubmissionStatus.FAILED
         return s
 
     """Methods to calculate internal data for a score."""
@@ -347,21 +343,14 @@ class Score:
                 ezpp.calculate(osu_file_path)
 
                 pp = ezpp.get_pp()
-                if pp not in (math.inf, math.nan):
-                    return (pp, ezpp.get_sr())
-                else:
-                    return (0.0, 0.0)
+                return (pp, ezpp.get_sr()) if pp not in (math.inf, math.nan) else (0.0, 0.0)
         elif mode_vn == 2:  # catch
             return (0.0, 0.0)
         else:  # mania
             if self.bmap.mode.as_vanilla != 3:
                 return (0.0, 0.0)  # maniera has no convert support
 
-            if self.mods != Mods.NOMOD:
-                mods = int(self.mods)
-            else:
-                mods = 0
-
+            mods = int(self.mods) if self.mods != Mods.NOMOD else 0
             calc = Maniera(str(osu_file_path), mods, self.score)
             calc.calculate()
 

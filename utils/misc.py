@@ -139,12 +139,8 @@ def _download_achievement_images_osu(achievements_path: Path) -> bool:
         for gm in ('osu', 'taiko', 'fruits', 'mania'):
             # only osu!std has 9 & 10 star pass/fc medals.
             for n in range(1, 1 + (10 if gm == 'osu' else 8)):
-                achs.append(f'{gm}-skill-pass-{n}{res}.png')
-                achs.append(f'{gm}-skill-fc-{n}{res}.png')
-
-        for n in (500, 750, 1000, 2000):
-            achs.append(f'osu-combo-{n}{res}.png')
-
+                achs.extend((f'{gm}-skill-pass-{n}{res}.png', f'{gm}-skill-fc-{n}{res}.png'))
+        achs.extend(f'osu-combo-{n}{res}.png' for n in (500, 750, 1000, 2000))
     log('Downloading achievement images from osu!.', Ansi.LCYAN)
 
     for ach in achs:
@@ -188,9 +184,7 @@ def seconds_readable(seconds: int) -> str:
         r.append(f'{hours:02d}')
 
     minutes, seconds = divmod(seconds, 60)
-    r.append(f'{minutes:02d}')
-
-    r.append(f'{seconds % 60:02d}')
+    r.extend((f'{minutes:02d}', f'{seconds % 60:02d}'))
     return ':'.join(r)
 
 

@@ -175,11 +175,7 @@ class Player:
 
         # generate a token if not given
         token = extras.get('token', None)
-        if token is not None:
-            self.token = token
-        else:
-            self.token = self.generate_token()
-
+        self.token = token if token is not None else self.generate_token()
         # ensure priv is of type Privileges
         self.priv = (priv if isinstance(priv, Privileges) else
                      Privileges(priv))
@@ -293,10 +289,7 @@ class Player:
         # NOTE: this is currently only wiped when the
         # user leaves their clan; if name/clantag ever
         # become changeable, it will need to be wiped.
-        if self.clan:
-            return f'[{self.clan.tag}] {self.name}'
-        else:
-            return self.name
+        return f'[{self.clan.tag}] {self.name}' if self.clan else self.name
 
     # TODO: chat embed with clan tag hyperlinked?
 
@@ -666,9 +659,6 @@ class Player:
     async def join_clan(self, c: 'Clan') -> bool:
         """Attempt to add `self` to `c`."""
         if self.id in c.members:
-            return False
-
-        if not 'invited':  # TODO
             return False
 
         await c.add_member(self)

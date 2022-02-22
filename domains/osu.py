@@ -166,9 +166,6 @@ async def osuError(conn: Connection) -> HTTPResponse:
         log(f'{p or "Offline user"} sent osu-error: {err_desc}', Ansi.LCYAN)
         printc(err_args['stacktrace'][:-2], Ansi.LMAGENTA)
 
-    # TODO: save error in db
-    pass
-
 
 @domain.route('/web/osu-screenshot.php', methods=['POST'])
 @required_mpargs({'u', 'p', 'v'})
@@ -454,19 +451,19 @@ async def osuSearchHandler(p: 'Player', conn: Connection) -> HTTPResponse:
             stacktrace = utils.misc.get_appropriate_stacktrace()
             await utils.misc.log_strange_occurrence(stacktrace)
 
-        if USING_CHIMU:  # error handling varies
-            if resp.status == 404:
-                return b'0' # no maps found
-            elif resp.status >= 500: # chimu server error (happens a lot :/)
-                return b'-1\nFailed to retrieve data from the beatmap mirror.'
-            elif resp.status != 200:
-                stacktrace = utils.misc.get_appropriate_stacktrace()
-                await utils.misc.log_strange_occurrence(stacktrace)
-                return b'-1\nFailed to retrieve data from the beatmap mirror.'
-        else:  # cheesegull
-            if resp.status != 200:
-                return b'-1\nFailed to retrieve data from the beatmap mirror.'
-
+        if USING_CHIMU and resp.status == 404:
+            return b'0' # no maps found
+        elif (
+            USING_CHIMU
+            and resp.status >= 500
+            or not USING_CHIMU
+            and resp.status != 200
+        ): # chimu server error (happens a lot :/)
+            return b'-1\nFailed to retrieve data from the beatmap mirror.'
+        elif USING_CHIMU and resp.status != 200:
+            stacktrace = utils.misc.get_appropriate_stacktrace()
+            await utils.misc.log_strange_occurrence(stacktrace)
+            return b'-1\nFailed to retrieve data from the beatmap mirror.'
         result = await resp.json()
 
         if USING_CHIMU:
@@ -485,12 +482,7 @@ async def osuSearchHandler(p: 'Player', conn: Connection) -> HTTPResponse:
         if bmap['ChildrenBeatmaps'] is None:
             continue
 
-        if USING_CHIMU:
-            bmap['HasVideo'] = int(bmap['HasVideo'])
-        else:
-            # cheesegull doesn't support vids
-            bmap['HasVideo'] = '0'
-
+        bmap['HasVideo'] = int(bmap['HasVideo']) if USING_CHIMU else '0'
         diff_sorted_maps = sorted(
             bmap['ChildrenBeatmaps'],
             key=lambda m: m['DifficultyRating']
